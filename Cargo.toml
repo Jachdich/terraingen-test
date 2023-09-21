@@ -1,0 +1,16 @@
+[package]
+name = "sailing-sim"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.dev]
+opt-level = 1 # for faster debug builds, idk
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[dependencies]
+bevy = "0.11"
+leafwing-input-manager = "0.10.0"
