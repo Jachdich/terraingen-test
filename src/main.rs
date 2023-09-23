@@ -14,7 +14,11 @@ enum Action {
 }
 
 #[derive(Component)]
-struct Player;
+struct Player {
+    yaw: f32,
+    pitch: f32,
+}
+
 
 fn spawn_player(mut commands: Commands) {
     use Action::*;
@@ -31,7 +35,7 @@ fn spawn_player(mut commands: Commands) {
                 (ShiftLeft, Crouch),
             ]),
         })
-        .insert(Player);
+        .insert(Player { yaw: 0.0, pitch: 0.0 });
 }
 
 fn spawn_camera(mut commands: Commands) {
@@ -112,10 +116,17 @@ fn move_and_look(
 
 }
 
-fn look(mut motion_ev: EventReader<MouseMotion>) {
+fn look(mut motion_ev: EventReader<MouseMotion>, mut camera_query: Query<&mut Transform, With<Camera3d>>, mut player_query: Query<&mut Player>) {
+    let mut camera_state = camera_query.single_mut();
+    let mut player = player_query.single_mut();
+    const SENSITIVITY: f32 = 0.001;
     for ev in motion_ev.iter() {
         println!("Mouse moved: X: {} px, Y: {} px", ev.delta.x, ev.delta.y);
+        player.yaw -= ev.delta.x * SENSITIVITY;
+        player.pitch -= ev.delta.y * SENSITIVITY;
     }
+    player.pitch = player.pitch.clamp(-3.141592/2.0, 3.141592/2.0); 
+    camera_state.rotation = Quat::from_axis_angle(Vec3::Y, player.yaw) * Quat::from_axis_angle(Vec3::X, player.pitch);
 }
 
 fn main() {
