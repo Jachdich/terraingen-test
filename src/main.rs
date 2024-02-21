@@ -1,5 +1,8 @@
+use bevy::pbr::ScreenSpaceAmbientOcclusionTextures;
 use bevy::prelude::*;
 use bevy::input::mouse::MouseMotion;
+use bevy::render::mesh::VertexAttributeValues;
+use bevy::render::render_resource::ColorTargetState;
 use leafwing_input_manager::prelude::*;
 use bevy::window::CursorGrabMode;
 
@@ -18,7 +21,6 @@ struct Player {
     yaw: f32,
     pitch: f32,
 }
-
 
 fn spawn_player(mut commands: Commands) {
     use Action::*;
@@ -50,11 +52,31 @@ fn spawn_scene(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    // let map = [0, 1, 6, 3, 1, 6, 4, 7, 3, 4, 4, 2, 1, 8, 7, 6, 7, 7, 3, 3, 1, 5, 3, 4, 7];
+    let map = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let width = 5;
+    let height = 5;
+    let mut mesh = Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList);
+    let mut vertices = Vec::<[f32; 3]>::new();
+    // let mut colours = Vec::<[f32; 3]>::new();
+    let mut indices = Vec::<u32>::new();
+
+    for x in 0..(width - 1) {
+        for y in 0..(height - 1) {
+            vertices.push([x as f32, y as f32, map[y * width + x] as f32]);
+            vertices.push([x as f32 + 1.0, y as f32, map[y * width + x+1] as f32]);
+            vertices.push([x as f32, y as f32 + 1.0, map[(y+1) * width + x] as f32]);
+            indices.push(((y*width+x)*3+0) as u32);
+            indices.push(((y*width+x)*3+1) as u32);
+            indices.push(((y*width+x)*3+2) as u32);
+        }
+    }
+
+    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, VertexAttributeValues::Float32x3(vertices));
+    // mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, VertexAttributeValues::Float32x3(colours));
+    mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices)));
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Plane {
-            size: 5.0,
-            subdivisions: 100,
-        })),
+        mesh: meshes.add(mesh),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
@@ -121,7 +143,7 @@ fn look(mut motion_ev: EventReader<MouseMotion>, mut camera_query: Query<&mut Tr
     let mut player = player_query.single_mut();
     const SENSITIVITY: f32 = 0.001;
     for ev in motion_ev.iter() {
-        println!("Mouse moved: X: {} px, Y: {} px", ev.delta.x, ev.delta.y);
+        // println!("Mouse moved: X: {} px, Y: {} px", ev.delta.x, ev.delta.y);
         player.yaw -= ev.delta.x * SENSITIVITY;
         player.pitch -= ev.delta.y * SENSITIVITY;
     }
