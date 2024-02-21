@@ -56,19 +56,19 @@ fn spawn_scene(
     let map = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     let width = 5;
     let height = 5;
-    let mut mesh = Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleList);
+    let mut mesh = Mesh::new(bevy::render::render_resource::PrimitiveTopology::TriangleStrip);
     let mut vertices = Vec::<[f32; 3]>::new();
     // let mut colours = Vec::<[f32; 3]>::new();
     let mut indices = Vec::<u32>::new();
 
-    for x in 0..(width - 1) {
-        for y in 0..(height - 1) {
+    for y in 0..(height - 1) {
+        for x in 0..(width) {
             vertices.push([x as f32, y as f32, map[y * width + x] as f32]);
-            vertices.push([x as f32 + 1.0, y as f32, map[y * width + x+1] as f32]);
-            vertices.push([x as f32, y as f32 + 1.0, map[(y+1) * width + x] as f32]);
-            indices.push(((y*width+x)*3+0) as u32);
-            indices.push(((y*width+x)*3+1) as u32);
-            indices.push(((y*width+x)*3+2) as u32);
+            vertices.push([x as f32, y as f32 + 1.0, map[(y + 1) * width + x] as f32]);
+            // vertices.push([x as f32, y as f32 + 1.0, map[(y+1) * width + x] as f32]);
+            indices.push(((y*width+x)*2+0) as u32);
+            indices.push(((y*width+x)*2+1) as u32);
+            // indices.push(((y*width+x)*3+2) as u32);
         }
     }
 
@@ -77,7 +77,7 @@ fn spawn_scene(
     mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices)));
     commands.spawn(PbrBundle {
         mesh: meshes.add(mesh),
-        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+        material: materials.add(StandardMaterial { base_color: Color::rgb(0.3, 0.5, 0.3), double_sided: true, ..default()}),
         ..default()
     });
 }
